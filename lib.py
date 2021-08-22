@@ -25,6 +25,7 @@
 
 
 
+
 #PWM 工作模板#
 #pwm0 = PWM(Pin(0))      # 通过Pin对象来创建PWM对象
 #pwm0.freq()             # 获得当前的PWM频率
@@ -37,10 +38,9 @@
 #上传温度
 import  urequests
 import network
-from machine import Pin, PWM ,RTC
+from machine import Pin, PWM ,RTC,Timer
 import time,dht,machine,ujson,ntptime,sys
 def ap(ssd,pwd='',active=1):
-    
     ap= network.WLAN(network.AP_IF)
     ap.active(active)
     try:
@@ -52,39 +52,8 @@ def ap(ssd,pwd='',active=1):
         return "success!"
     except Exception as e:
       return str(e)
-def pwm(pin,f,d,):
-  pwm2 = PWM(Pin(pin), freq=f, duty=d)
-#呼吸灯 gpio 需要空的脚管 MAX 最大亮度等级 step 呼吸灯步长,越小越流畅 lev 亮度初始值
-def Breathe(gpio=2,max=1000,step=10,lev=1):
- 
-    while True:
-        lev+=step
-        i=lev
-        if lev>max:
-            i=max*2-lev
-            if i<0:
-                break
-        time.sleep(0.01)
-        #print (i)
-        pwm2 = PWM(Pin(gpio), freq=100, duty=i)
 
 
-    ##print (12)
-
-
-def bb(p,f=1000,d=250,t=0.5):
-  '''
-  蜂鸣器
-  p: gpio ,w周期，m：脉宽
-
-
-
-  '''
-
-
-  pwm22 = PWM(Pin(p), freq=f, duty=d)
-  time.sleep(t)
-  pwm22.deinit()
 
 #测温度
 def dhts(pin,dh=11):
@@ -108,24 +77,62 @@ def dhts(pin,dh=11):
   return a
 
 
-#gpio 控制的引脚
-#st 引脚的值
-def pin(gpio=2,st=''):
-        p=Pin(gpio,Pin.OUT)
-        if st==1:
-          p.value(1)
-          return
-        if st==0:
-          p.value(0)
-          return
-        if st==2:
-          return p.value()
+
+
+class flashLed:
+    def __init__(self,pin):
+      self.pin=Pin(pin,Pin.OUT)
+      self.delay=250
+      self._time1=time.ticks_ms()
+      self.period=1
+      
+    def sw(self,s=2,delay=250):
+      if type(s).__name__=="Timer" or s==2:
+        if (time.ticks_ms()- self._time1)>self.delay:
+          self.delay= self.delay if delay==250  else delay
+          self.pin.value(0) if self.pin.value() else self.pin.value(1)
+          self._time1=time.ticks_ms()
+          return 
+      if s==1:
+        self.pin.value(1)
+      if s==0:
+        self.pin.value(0)
+     
+    def flash(self,delay=250):
+        self.pin.init(Pin.OUT)
+        self.stop()
+        self.delay=delay
+        self.tim=Timer(-1)   
+        self.tim.init(period=self.period, mode=Timer.PERIODIC, callback=self.sw)
+    def stop(self):
+        try:
+          self.tim.deinit()
+        except:
+          pass
+        try:
           
-        else:
-          p.value(0) if p.value() else p.value(1)
-          return
-
-
+          self.tim1.deinit()
+          time.sleep_ms(10)
+          self.pwm.deinit()
+        except:
+          pass
+        time.sleep_ms(20)
+    def bre(self,loop=1,step=1):
+        self.stop()
+        self.freq=100
+        self.step=step
+        self.max=1022
+        self.duty=self.max
+        self.pwm = PWM(self.pin, freq=self.freq, duty=self.duty)
+        if loop==1:
+          self.tim1=Timer(-1)    
+          self.tim1.init(period=self.period, mode=Timer.PERIODIC, callback=self.loop)
+    def loop(self,s=1):
+        self.duty=self.duty-self.step
+        if self.duty== -self.max:
+           self.duty=self.max
+        self.pwm.init(freq=self.freq, duty=abs(self.duty))
+      
 
 
 def update_time_http():
@@ -179,7 +186,7 @@ def wifi(ssd='',pwd='',hostname="micropython"):
 #网络检测 
 def  isOline():
   try:
-   html = urequests.get("http://www.baidu.com")
+   urequests.get("http://www.baidu.com")
   except:
    return False
   return True
@@ -217,12 +224,5 @@ class  _wifi:
     
   def info(self):
     return self.wifi0.ifconfig()
-
-
-
-
-
-
-
 
 

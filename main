@@ -15,7 +15,10 @@ led_Green=12  #绿灯引脚
 
 led_Blue=13   #蓝灯引脚
 
-Prav_key=''
+Prav_key='d023980739a4c6d611f59b9e351b791c'
+lib.pin(led_Green,0)
+lib.pin(led_Red,0)
+lib.pin(led_Blue,0)
 
 
 
@@ -37,7 +40,7 @@ def setFile(s=0):
       if s=="read":
         return num
       f=open(file,"w")
-      int_1= str(0) if type(s).__name__=="Timer"  else (str(1+int(num)))
+      int_1= str(1) if type(s).__name__=="Timer"  else (str(1+int(num)))
       f.write(int_1)
       f.flush()
       f.close()
@@ -80,9 +83,6 @@ def wifi_setup(url):
 
 
         else:
-
-
-
          serv.send("666 \r\n")
 
 
@@ -100,15 +100,9 @@ def wifi_setup(url):
 
 
 try:
-
   print("重启次数：",setFile("read"))
-
   tim=Timer(-1)     
-
   tim.init(period=5000, mode=Timer.ONE_SHOT, callback=setFile)
-
-
-
   if setFile("read") >=3:
       lib.ap("My_Light")
       setFile(tim)
@@ -118,7 +112,6 @@ try:
       serv=http("192.168.4.1",80)
       while 1:
         serv.http(wifi_setup)    
-
   setFile()
 except:
   print("无法写入")
@@ -131,14 +124,8 @@ except:
   pwd="1234567788"
   
   
-
-
-
-lib.pin(led_Green,0)
 lib.pin(led_Blue,1)
-lib.pin(led_Red,0)
 wifi=lib.wifi(ssd,pwd)[0]
-
 #发送消息到串口
 def p_data(topic,msg):
   print(topic,msg)
@@ -184,13 +171,3 @@ while 1:
     time.sleep(1)
   c.check_msg()
   light.check_msg()
-
-
-
-
-
-
-
-
-
-

@@ -137,7 +137,7 @@ def update_time():
       print (rtc.datetime()) # get date and time
 
 ##WiFi链接模块    
-def wifi(ssd='',pwd='',hostname="micropython"):
+def wifi(ssd='',pwd='',hostname="MicroPython"):
       wifi0 = network.WLAN(network.STA_IF)  #创建连接对象 如果让ESP32接入WIFI的话使用STA_IF模式,若以ESP32为热点,则使用AP模式   
       if ssd=='':
         return (wifi0,'')
@@ -171,7 +171,7 @@ class  _wifi:
   def __init__(self,ssd,pwd):
     self.ssd=ssd
     self.pwd=pwd
-    self.hostname="micropython" 
+    self.hostname="MicroPython" 
     self.wifi0 = network.WLAN(network.STA_IF)  
   def connect(self):
     self.wifi0.active(True) #激活WIFI

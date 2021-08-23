@@ -58,56 +58,56 @@ class flashLed:
       self.delay=250
       self._time1=time.ticks_ms()
       self.period=1
-      
+      self.freq=100
+      self.max=1022
+      self.duty=self.max      
     def sw(self,s=2,delay=250):
       if type(s).__name__=="Timer" or s==2:
         if (time.ticks_ms()- self._time1)>self.delay:
           self.delay= self.delay if delay==250  else delay
           self.pin.value(0) if self.pin.value() else self.pin.value(1)
           self._time1=time.ticks_ms()
-          return 
       if s==1:
         self.pin.value(1)
       if s==0:
         self.pin.value(0)
-     
+      return
     def flash(self,delay=250):
-        self.pin.init(Pin.OUT)
-        self.stop()
         self.delay=delay
-        self.tim=Timer(-1)   
-        self.tim.init(period=self.period, mode=Timer.PERIODIC, callback=self.sw)
+        self.timer(self.sw)
+        return
     def stop(self):
         try:
           self.tim.deinit()
+          del self.tim
         except:
           pass
         try:
-          
-          self.tim1.deinit()
-          time.sleep_ms(10)
+          time.sleep_ms(50)
           self.pwm.deinit()
         except:
-          pass
-        time.sleep_ms(20)
+          pass 
+        self.pin.init(Pin.OUT)
+
+        return
+    def timer(self,cb):
+        self.tim=Timer(-1)  
+        self.tim.init(period=self.period, mode=Timer.PERIODIC, callback=cb)
     def bre(self,loop=1,step=1):
-        self.stop()
-        self.freq=100
         self.step=step
-        self.max=1022
-        self.duty=self.max
-        self.pwm = PWM(self.pin, freq=self.freq, duty=self.duty)
         if loop==1:
-          self.tim1=Timer(-1)    
-          self.tim1.init(period=self.period, mode=Timer.PERIODIC, callback=self.loop)
+          self.stop()
+          self.timer(self.repat)
         if loop==0:
-          self.loop()
-    def loop(self,s=1):
+          self.repat()
+        return  
+    def repat(self,s=1):
+        self.pwm = PWM(self.pin)
         self.duty=self.duty-self.step
-        if self.duty== -self.max:
+        if self.duty< -self.max:
            self.duty=self.max
         self.pwm.init(freq=self.freq, duty=abs(self.duty))
-      
+        return
 
 
 def update_time_http():
@@ -199,14 +199,3 @@ class  _wifi:
     
   def info(self):
     return self.wifi0.ifconfig()
-
-
-
-
-
-
-
-
-
-
-

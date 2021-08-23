@@ -1,5 +1,8 @@
 
 
+
+
+
 from machine import Pin, UART,Timer,reset
 
 
@@ -7,6 +10,15 @@ from machine import Pin, UART,Timer,reset
 import bfMqtt,lib,os,time,network
 
 from httpServer import http
+
+led_Red=15    
+
+led_Green=12  #绿灯引脚
+
+led_Blue=13   #蓝灯引脚
+
+
+
 Prav_key='d023980739a4c6d611f59b9e351b791c'
 led_Green=lib.flashLed(12)#绿灯引脚
 led_Red=lib.flashLed(15)#红灯引脚
@@ -86,6 +98,18 @@ def wifi_setup(url):
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 try:
   print("重启次数：",setFile("read"))
   tim=Timer(-1)     
@@ -112,7 +136,7 @@ except:
   
   
 led_Blue.sw(1)
-wifi=lib.wifi(ssd,pwd)[0]
+wifi=lib.wifi(ssd,pwd,'Light')[0]
 #发送消息到串口
 def p_data(topic,msg):
   print(topic,msg)
@@ -144,7 +168,6 @@ while 1:
     dely_time=40
     led_Red.sw(0)
     led_Green.sw(1)
-    led_Green.sw(1)
   else:
     dely_time=2
     led_Green.sw(0)
@@ -154,3 +177,15 @@ while 1:
     time.sleep(1)
   c.check_msg()
   light.check_msg()
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,31 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #PWM 工作模板#
 #pwm0 = PWM(Pin(0))      # 通过Pin对象来创建PWM对象
 #pwm0.freq()             # 获得当前的PWM频率
@@ -79,6 +51,7 @@ def dhts(pin,dh=11):
 
 
 
+
 class flashLed:
     def __init__(self,pin):
       self.pin=Pin(pin,Pin.OUT)
@@ -127,6 +100,8 @@ class flashLed:
         if loop==1:
           self.tim1=Timer(-1)    
           self.tim1.init(period=self.period, mode=Timer.PERIODIC, callback=self.loop)
+        if loop==0:
+          self.loop()
     def loop(self,s=1):
         self.duty=self.duty-self.step
         if self.duty== -self.max:
@@ -224,5 +199,14 @@ class  _wifi:
     
   def info(self):
     return self.wifi0.ifconfig()
+
+
+
+
+
+
+
+
+
 
 

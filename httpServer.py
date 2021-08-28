@@ -1,6 +1,3 @@
-
-
-
 import socket,re,network,os
 
 
@@ -19,9 +16,8 @@ class http:
     
     
   def http(self,cb):    
-      self.conn, self.addr = self.webserver.accept() #接受一个连接，conn是一个新的socket对象
-
-      request = self.conn.recv(1024) #从套接字接收1024字节的数据
+      self.conn, self.addr = self.webserver.accept()
+      request = self.conn.recv(1024) 
 
       if len(request)>0:
 
@@ -35,10 +31,10 @@ class http:
           self.sendall(self.header)
           self.conn.send("Connection: close\r\n")
           self.conn.send("\r\n")
-          #try:
-          cb(url)
-          #except:
-          #  self.send("error")
+          try:
+            cb(url)
+          except  Exception as e:
+            self.sendall(str(e))
         self.send("\r\n")
         self.conn.close() 
         print("out %s" % str(self.IP))     
@@ -58,24 +54,3 @@ class http:
         data[tmp[0]]=tmp[1]
       return data
       
-      
-
-
-def cb(u):
-  if u=="/12":
-    a.send("12")
-
-
-
-if __name__ == "__main__":
-  ap= network.WLAN(network.AP_IF)
-  ap.active(1)
-  ap.config(essid="ESP8266", authmode=network.AUTH_OPEN)
-  ip =ap.ifconfig()[0]
-  port = 80
-  a=http(ip,port)      
-  while 1:
-    a.http(cb)
-  
- 
-

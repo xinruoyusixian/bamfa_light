@@ -59,6 +59,7 @@ class  mq:
   def check_msg(self):
       try:
         self.c.check_msg()
+        self.online=1
       except OSError as e:
         self.connect()
   #mqtt 心跳回复

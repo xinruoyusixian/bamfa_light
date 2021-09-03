@@ -14,7 +14,6 @@ class http:
     self.header="HTTP/1.1 200 OK\r\nServer: Esp8266\r\nContent-Type: text/html;charset=UTF-8\r\n"
     print("服务器地址:%s:%d" %(ip,port))
     
-    
   def http(self,cb):    
       self.conn, self.addr = self.webserver.accept()
       request = self.conn.recv(1024) 
@@ -53,4 +52,4 @@ class http:
         tmp=i.split("=")
         data[tmp[0]]=tmp[1]
       return data
-      
+ 

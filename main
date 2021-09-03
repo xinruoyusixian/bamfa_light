@@ -1,11 +1,4 @@
-
-
-
-
-
 from machine import Pin, UART,Timer,reset
-
-
 
 import bfMqtt,lib,os,time,network
 
@@ -18,7 +11,7 @@ led_Green=12  #绿灯引脚
 led_Blue=13   #蓝灯引脚
 
 
-
+device="My_Light"
 Prav_key='d023980739a4c6d611f59b9e351b791c'
 led_Green=lib.flashLed(12)#绿灯引脚
 led_Red=lib.flashLed(15)#红灯引脚
@@ -32,60 +25,37 @@ led_Blue.sw(0)
 
 
 
-def setFile(s=0):
-      print("[Restart]:counter is running",type(s)      )
+def setFile(s=1):
       file="setWifi.py"
-      try:
-        f=open(file,"r")
-        num=int(f.read())
-      except:
-        f=open(file,"w")
-        f.write("1")
-        f.flush()
-        f.close()        
+      f=lib.file(file)
+      if f:
+        num=int(f)
+        if s=="read":
+          return num
+     
+        int_1= str(1) if type(s).__name__=="Timer" or s=="add"  else (str(1+int(num)))
+        lib.file(file,int_1)
+        return int_1
+      else:
+        lib.file(file,'1')      
         return 1
-      del f
-      if s=="read":
-        return num
-      f=open(file,"w")
-      int_1= str(1) if type(s).__name__=="Timer"  else (str(1+int(num)))
-      f.write(int_1)
-      f.flush()
-      f.close()
-      print("[Restart] counter set: ",int_1)
-      return int(int_1)
-
-
 def wifi_setup(url):
-
         if url =="/":
           serv.sendall('<form action="wifi">SSD:<br><input type="text" name="ssd" value=""><br>PASSWORD<br><input type="text" name="pwd" value=""><br<br><input type="submit" value="Submit"></form> ')
           serv.sendall('<hr/>')
           ap_list=lib.wifi()[0].scan()
 
           for i in ap_list:
-            #conn.sendall("<tr><td>%s</td><td>%d</td><tr/>"%(i[0].decode(),i[3]))
             serv.sendall("%s ,%d<br/>"%(i[0].decode(),i[3]))
-          #conn.sendall(html)
         if url.find("/wifi")!=-1:
             d=(serv.get_Args(url))
             print(d)
             if d.get("ssd") !=None and d.get("pwd")!=None:
               conf="ssd='%s'\r\npwd='%s'"%(d.get("ssd"),d.get("pwd"))
-              wc=open("wifi_info.py","wb")
-              wc.write(conf)
-              wc.flush()
-
-              wc.close()
-
+              lib.file("wifi_info.py",conf)
               serv.send("\r\n") 
-
               serv.send("设置成功，即将重启。")
-
               time.sleep(3)
-
-
-
               reset()
 
 
@@ -115,7 +85,7 @@ try:
   tim=Timer(-1)     
   tim.init(period=5000, mode=Timer.ONE_SHOT, callback=setFile)
   if setFile("read") >=3:
-      lib.ap("My_Light")
+      lib.ap(device)
       setFile(tim)
       led_Green.sw(1)
       led_Blue.sw(1)
@@ -142,20 +112,21 @@ def p_data(topic,msg):
   print(topic,msg)
 
 
-bfMqtt.DEBUG=1
 
 #订阅灯 TOPIC
 
-c=bfMqtt.mq(Prav_key,p_data,"light002")
+c=bfMqtt.bfmq(Prav_key,p_data,"light002")
 c.connect()
 
 #订阅空调 TOPIC
-light=bfMqtt.mq(Prav_key,p_data,"ac005")
+light=bfMqtt.bfmq(Prav_key,p_data,"ac005")
 light.connect()
 led_Blue.sw(0)
-
+light.publish(wifi.ifconfig()[0])
+c.publish(wifi.ifconfig()[0])
 while 1:  
   if  not wifi.isconnected():
+      
       led_Green.sw(0)
       led_Blue.sw(0)
       led_Red.sw(2)
@@ -177,15 +148,3 @@ while 1:
     time.sleep(1)
   c.check_msg()
   light.check_msg()
-
-
-
-
-
-
-
-
-
-
-
-

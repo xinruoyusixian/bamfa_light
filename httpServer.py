@@ -2,7 +2,6 @@ import socket,re,network,os
 
 
 class http:
-  
   def __init__(self,ip,port):
     self.IP=ip
     self.PORT=port
@@ -13,6 +12,7 @@ class http:
     self.webserver.listen(5)                                              #监听套接字
     self.header="HTTP/1.1 200 OK\r\nServer: Esp8266\r\nContent-Type: text/html;charset=UTF-8\r\n"
     print("服务器地址:%s:%d" %(ip,port))
+    
     
   def http(self,cb):    
       self.conn, self.addr = self.webserver.accept()
@@ -52,4 +52,5 @@ class http:
         tmp=i.split("=")
         data[tmp[0]]=tmp[1]
       return data
- 
+      
+

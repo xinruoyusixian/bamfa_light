@@ -1,0 +1,74 @@
+
+
+import time
+import bafa
+
+led_Red=15    
+led_Green=12  #绿灯引脚
+led_Blue=13   #蓝灯引脚
+
+led_Green=lib.flashLed(12)#绿灯引脚
+led_Red=lib.flashLed(15)#红灯引脚
+led_Blue=lib.flashLed(13)#蓝灯引脚
+
+led_Green.sw(0)
+led_Red.sw(0)
+led_Blue.sw(0)
+
+
+
+try:
+  import cfg
+  ssd=cfg.ssd
+  pwd=cfg.pwd
+  Prav_key=cfg.key
+except:
+  ssd="wifi"
+  pwd="1234567788"
+  Prav_keykey=''
+  
+  
+
+#发送消息到串口
+def p_data(topic,msg):
+  print(topic,msg)
+
+
+
+#订阅灯 TOPIC
+t=0
+c=bafa.bfMqtt(Prav_key,"light002",p_data)
+c.connect()
+
+#订阅空调 TOPIC
+light=bafa.bfMqtt(Prav_key,"ac005",p_data)
+light.connect()
+led_Blue.sw(0)
+try:
+ 
+ while 1:  
+  if  not wifi.isconnected():
+      led_Green.sw(0)
+      led_Blue.sw(0)
+      led_Red.sw(2)
+      continue
+  led_Blue.sw(2)
+
+  if c.online:
+    dely_time=40
+    led_Red.sw(0)
+    led_Green.sw(1)
+  else:
+    dely_time=2
+    led_Green.sw(0)
+    led_Red.sw(1)
+  if time.time()%dely_time==0:
+    c.ping()
+    time.sleep(1)
+  c.check_msg()
+  light.check_msg()
+
+except Exception as e:
+  machine.reset()
+  
+

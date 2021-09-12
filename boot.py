@@ -1,12 +1,13 @@
 
 
+
 import uos, machine,time,lib
 import gc
 import webrepl
 webrepl.start()
 gc.collect()
 #响应按键开关
-device="Power"
+device="MPY_Light"
 power=lib.flashLed(5)#开关控制引脚
 p4=lib.flashLed(4)
 p12=lib.flashLed(12)
@@ -71,3 +72,5 @@ try:
 except:
   _reset()
 wifi=lib.wifi(ssd,pwd,device)[0]
+
+

@@ -1,3 +1,37 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #PWM 工作模板#
 #pwm0 = PWM(Pin(0))      # 通过Pin对象来创建PWM对象
 #pwm0.freq()             # 获得当前的PWM频率
@@ -12,18 +46,7 @@ import  urequests
 import network
 from machine import Pin, PWM ,RTC,Timer
 import time,dht,machine,ujson,ntptime,sys
-def ap(ssd,pwd='',active=1):
-    ap= network.WLAN(network.AP_IF)
-    ap.active(active)
-    try:
-      if pwd=='':
-        ap.config(essid=ssd, authmode=network.AUTH_OPEN)
-        return "success!"
-      else:
-        ap.config(essid=ssd, authmode=network.AUTH_WPA_WPA2_PSK, password=pwd)
-        return "success!"
-    except Exception as e:
-      return str(e)
+
 
 
 
@@ -51,7 +74,33 @@ def dhts(pin,dh=11):
 
 
 
-
+def ap(ssd,pwd=''):
+    AP= network.WLAN(network.AP_IF)
+    if ssd=='':
+      AP.active(0)
+      return (AP,True)
+    try:
+      AP.active(1)
+      AP.config(essid=ssd, authmode=network.AUTH_WPA_WPA2_PSK, password=pwd) if pwd != '' else AP.config(essid=ssd, authmode=network.AUTH_OPEN)
+      return (AP,True)
+    except Exception as e:
+      print (e)
+      return (AP,False)
+      
+def file(file,c=''):
+    if c=='':
+      try:
+        f=open(file,"r")
+        return f.read()
+      except Exception as e:
+        print(e,"文件不存在")
+        return False
+    else:
+      f=open(file,"w")
+      f.write(c)
+      f.flush()
+      f.close()
+      
 class flashLed:
     def __init__(self,pin):
       self.pin=Pin(pin,Pin.OUT)
@@ -69,9 +118,13 @@ class flashLed:
           self._time1=time.ticks_ms()
       if s==1:
         self.pin.value(1)
+        return
       if s==0:
         self.pin.value(0)
-      return
+        return
+      if s=="":
+        return self.pin.value()        
+      
     def flash(self,delay=250):
         self.delay=delay
         self.timer(self.sw)
@@ -110,20 +163,10 @@ class flashLed:
         return
 
 
-def update_time_http():
-    URL="http://quan.suning.com/getSysTime.do"
-    try:
-      res=urequests.get(URL).text
-      j=ujson.loads(res)
-      list=j['sysTime1']
-      rtc = RTC()
-      #rtc.datetime((year, month, mday, 0, hour, minute, second, 0))
-      rtc.datetime((int(list[0:4]), int(list[4:6]), int(list[6:8]) ,8,int(list[8:10]), int(list[10:12]), int(list[12:14] ),0)) 
-      print (rtc.datetime()) # get date and time
-    except OSError as e:
-      print ("upgrde failed!")
+
 
 def update_time():
+
       ntptime.host='ntp1.aliyun.com'
       try:
         ntptime.settime()
@@ -132,13 +175,12 @@ def update_time():
         return
       list=time.localtime(time.time()+8*60*60)
       rtc = RTC()
-      #rtc.datetime((year, month, mday, 0, hour, minute, second, 0))
       rtc.datetime((list[0], list[1], list[2] ,None,list[3], list[4], list[5] ,0)) 
-      print (rtc.datetime()) # get date and time
+      print (rtc.datetime())
 
-##WiFi链接模块    
 def wifi(ssd='',pwd='',hostname="MicroPython"):
-      wifi0 = network.WLAN(network.STA_IF)  #创建连接对象 如果让ESP32接入WIFI的话使用STA_IF模式,若以ESP32为热点,则使用AP模式   
+      wifi0 = network.WLAN(network.STA_IF)
+      wifi0.active(1)  
       if ssd=='':
         return (wifi0,'')
       wifi0.active(True) #激活WIFI
@@ -147,17 +189,77 @@ def wifi(ssd='',pwd='',hostname="MicroPython"):
       wifi0.disconnect()
       _s_time=time.time()
       if not wifi0.isconnected(): #判断WIFI连接状态
+
           print('[WIFI]:Connect to',ssd)
+
           wifi0.connect(ssd, pwd) #essid为WIFI名称,password为WIFI密码
+
           while not wifi0.isconnected():
+
             if (time.time()- _s_time)>5:
+
               print('[WIFI]:Connect Faied')
               return (wifi0,False)
     
       print('[WIFI]:', wifi0.ifconfig())
       return (wifi0,True)
 
+class btn:
+  
+  def __init__(self,p):
+    self.time_ms=time.ticks_ms
+    self.time=0
+    self._btn=Pin(p,Pin.IN)
+    self.diff_time=0
+    self.timer=-999
+    self.press_time=400 #长按最小时间
+    self.click_time=80 #单击最小时间
+    self._btn.irq(handler=self.FALLING,trigger=(Pin.IRQ_FALLING))
+    tim=Timer(self.timer)     
+    tim.init(period=1, mode=Timer.PERIODIC, callback=self.check)     
+    self.cb_press=None
+    self.cb_click=None
+    self.isNotRising=1
+    
 
+  def FALLING(self,_e=0):
+      self.isNotRising=1
+      self.time=self.time_ms()
+      self._btn.irq(handler=self.RISING,trigger=(Pin.IRQ_RISING))
+      
+
+  def RISING(self,_e=0):
+      self.isNotRising=0
+      tmp=self.time_ms()-self.time
+      if tmp<self.click_time:
+        return
+      self.diff_time=tmp
+      self._btn.irq(handler=self.FALLING,trigger=(Pin.IRQ_FALLING))
+  
+  def press(self,cb,s=0):
+      self.cb_press=cb
+      self.press_time= self.press_time if s==0 else s
+      
+  def click(self,cb):
+      self.cb_click=cb
+  def check(self,_e=0):
+      if self.time==0:
+        return
+      realTime=self.time_ms()
+      if realTime-self.time>self.press_time and self.isNotRising==1:
+          print("press")
+          if self.cb_press.__class__.__name__ != 'NoneType':
+            self.cb_press()
+          self.time=0
+          return
+
+      if self.diff_time >self.click_time and self.isNotRising==0:
+        print("click")
+        if self.cb_click.__class__.__name__ != 'NoneType':
+          self.cb_click()
+        self.time=0
+        return  
+        
 #网络检测 
 def  isOline():
   try:
@@ -171,7 +273,7 @@ class  _wifi:
   def __init__(self,ssd,pwd):
     self.ssd=ssd
     self.pwd=pwd
-    self.hostname="MicroPython" 
+    self.hostname="micropython" 
     self.wifi0 = network.WLAN(network.STA_IF)  
   def connect(self):
     self.wifi0.active(True) #激活WIFI
@@ -199,3 +301,20 @@ class  _wifi:
     
   def info(self):
     return self.wifi0.ifconfig()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

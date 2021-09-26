@@ -1,3 +1,4 @@
+        
 
 
 import time
@@ -50,19 +51,19 @@ try:
   if  not wifi.isconnected():
       led_Green.sw(0)
       led_Blue.sw(0)
-      led_Red.sw(2)
+      led_Red.sw(delay=500)
       continue
   led_Blue.sw(2)
 
   if c.online:
-    dely_time=40
+    delay_time=40
     led_Red.sw(0)
-    led_Green.sw(1)
+    led_Green.sw(delay=1000)
   else:
-    dely_time=2
+    delay_time=2
     led_Green.sw(0)
-    led_Red.sw(1)
-  if time.time()%dely_time==0:
+    led_Red.sw(delay=1000)
+  if time.time()%delay_time==0:
     c.ping()
     time.sleep(1)
   c.check_msg()
@@ -71,4 +72,5 @@ try:
 except Exception as e:
   machine.reset()
   
+
 

@@ -1,6 +1,8 @@
 
 
 
+
+
 import network
 from machine import Pin, PWM ,RTC,Timer
 import time,machine,ntptime,sys
@@ -34,18 +36,23 @@ def file(file,c=''):
 class flashLed:
     def __init__(self,pin):
       self.pin=Pin(pin,Pin.OUT)
-      self.delay=250
+      self.delay=500
       self._time1=time.ticks_ms()
       self.period=1
       self.freq=100
       self.max=1022
-      self.duty=self.max      
-    def sw(self,s=2,delay=250):
+      self.duty=self.max
+
+    def timer(self,cb):
+        self.tim=Timer(-1)
+        self.tim.init(period=self.period, mode=Timer.PERIODIC, callback=cb)      
+    def sw(self,s=2,delay=0):
       if type(s).__name__=="Timer" or s==2:
+        self.delay= self.delay if delay==0  else delay
         if (time.ticks_ms()- self._time1)>self.delay:
-          self.delay= self.delay if delay==250  else delay
           self.pin.value(0) if self.pin.value() else self.pin.value(1)
           self._time1=time.ticks_ms()
+          return
       if s==1:
         self.pin.value(1)
         return
@@ -73,9 +80,7 @@ class flashLed:
         self.pin.init(Pin.OUT)
 
         return
-    def timer(self,cb):
-        self.tim=Timer(-1)  
-        self.tim.init(period=self.period, mode=Timer.PERIODIC, callback=cb)
+
     def bre(self,loop=1,step=1):
         self.step=step
         if loop==1:
@@ -85,6 +90,7 @@ class flashLed:
           self.repat()
         return  
     def repat(self,s=1):
+        self.step=s if type(s).__name__!="Timer" else self.step
         self.pwm = PWM(self.pin)
         self.duty=self.duty-self.step
         if self.duty< -self.max:
@@ -192,6 +198,9 @@ class btn:
         print("press",diffTime)
         self.tim.deinit()
         self.cb(self.cb_press)
+
+
+
 
 
 
